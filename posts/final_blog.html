@@ -200,9 +200,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
 <p><strong>Project Overview</strong><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;In the genres of hip-hop and rap, Eminem is a rapper whose clever and technical delivery of provocative lyrics has made him famous among the general public. While his lyrical skills are undisputed, it is the raw emotions contained within that truly allows him to stand-out among his peers. Eminem frequently tackles dark subjects, such as domestic violence, drug addiction, murder, and rape while also exploring more vulnerable topics such as mental illness and fatherhood. My project explores how these intense subjects are presented by performing sentiment analysis on Eminem’s discography across his albums. Utilizing the VADER analyzer from <em>nltk</em>’s sentiment module, this paper will be used to uncover the emotional trends, patterns, and themes present in his works. More specifically, this project seeks to answer the question:<br>
-- How does the sentiment in Eminem’s lyrics reflect the themes of struggle and resilience across his albums?</p>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The motivation for this project was the release of Eminem’s newest album, <em>The Death of Slim Shady (Coup de Grâce)</em>. I have never explored Eminem as an artist, although I was aware of his hit tracks such as “Without Me” and “My Name Is.” When I listened to his song “Temporary”, which is a musical letter to his daughter when he is dead, I was introduced to the emotional intensity and autobiographical aspects of his work and was struck by the contrast to his deranged lyrics that I best knew him by. By analyzing sentiment trends and how they interact with common topics in Eminem’s music, I hope to present a nuanced understanding into how these sentiments translate the theme of personal growth represented in his discography.</p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;In the genres of hip-hop and rap, Eminem is a rapper whose clever and technical delivery of provocative lyrics has made him famous among the general public. While his lyrical skills are undisputed, it is the raw emotions contained within that truly allows him to stand-out among his peers. Eminem frequently tackles dark subjects, such as domestic violence, drug addiction, murder, and rape while also exploring more vulnerable topics such as mental illness and fatherhood. My project explores how these intense subjects are presented by performing sentiment analysis on Eminem’s discography across his albums. Utilizing the VADER analyzer from <em>nltk</em>’s sentiment module, this paper will be used to uncover the emotional trends, patterns, and themes present in his works. More specifically, this project seeks to answer the question:</p>
+<ul>
+<li><strong>How does the sentiment in Eminem’s lyrics reflect the themes of struggle and resilience across his albums?</strong></li>
+</ul>
 </section>
 <section id="methods" class="level2">
 <h2 class="anchored" data-anchor-id="methods">Methods</h2>
@@ -424,7 +425,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="results" class="level2">
 <h2 class="anchored" data-anchor-id="results">Results</h2>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;To visualize the sentiment scores of tracks across each album, inspiration was taken from the Romeo and Juliet assignment to use a colored bar graph to present how the sentiment evolves over time. Each bar chart displays the sentiment scores of the songs from the first track to the last. Any song with an average positive sentiment is colored yellow, while tracks with average negative sentiment are colored purple.</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;To visualize the overall sentiment in Eminem’s albums, a colored pie chart was used to display the frequencies of different sentiment strengths.</p>
 <div id="c276d45e" class="cell" data-scrolled="false" data-execution_count="7">
 <details class="code-fold">
 <summary>Show the code</summary>
@@ -450,40 +451,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>release_order <span class="op">=</span> [<span class="dv">9</span>, <span class="dv">0</span>, <span class="dv">6</span>, <span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">8</span>, <span class="dv">12</span>] </span>
 <span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>data_set <span class="op">=</span> []</span>
 <span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> release_order:</span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  data_set.append(album_plot[i])</span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="co"># plot the sentiment scores</span></span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="co"># input data_set</span></span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sentiment_charter(t):</span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  fig, axs <span class="op">=</span> plt.subplots(<span class="dv">6</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">24</span>))  <span class="co"># 6 rows, 2 columns of subplots</span></span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>  axs <span class="op">=</span> axs.flatten()</span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  fig.text(<span class="fl">0.5</span>, <span class="fl">0.01</span>, <span class="st">"Figure 1: Sentiment Analysis of Albums"</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">12</span>): </span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    a <span class="op">=</span> t[i]</span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    album <span class="op">=</span> a[<span class="dv">0</span>]</span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    song_name, sent_score <span class="op">=</span> <span class="bu">zip</span>(<span class="op">*</span>a[<span class="dv">1</span>])</span>
-<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    track_numbers <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(sent_score) <span class="op">+</span> <span class="dv">1</span>))</span>
-<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    colors <span class="op">=</span> [<span class="st">'orange'</span> <span class="cf">if</span> score <span class="op">&gt;=</span> <span class="dv">0</span> <span class="cf">else</span> <span class="st">'purple'</span> <span class="cf">for</span> score <span class="kw">in</span> sent_score]</span>
-<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>    axs[i].bar(track_numbers, sent_score, color<span class="op">=</span>colors)</span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    axs[i].set_title(album)</span>
-<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    axs[i].set_xlabel(<span class="st">'Tracks'</span>)</span>
-<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>    axs[i].set_ylabel(<span class="st">'Sentiment Score'</span>)</span>
-<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>  plt.tight_layout(rect<span class="op">=</span>[<span class="dv">0</span>, <span class="fl">0.02</span>, <span class="dv">1</span>, <span class="dv">1</span>])  <span class="co"># adjusts the space for caption without overlap</span></span>
-<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a><span class="co"># plot</span></span>
-<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>sentiment_charter(data_set)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  data_set.append(album_plot[i])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="final_blog_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img"></p>
-</figure>
 </div>
-</div>
-</div>
-<p><strong>Analyzing the Data</strong><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;As seen in Figure 1, the sentiment scores across each album is displayed from oldest to newest release. Observably, no album contains more positive sentiment scores than negative scores, signifying that Eminem’s discography favors negative emotional intensity. It is not a close contest either: his songs appear to convey overwhelming negative emotions.</p>
 <div id="45ee42ff" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Show the code</summary>
@@ -515,7 +485,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">8</span>)) </span>
 <span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>ax.pie(values, labels<span class="op">=</span>categories, autopct<span class="op">=</span><span class="st">'</span><span class="sc">%1.1f%%</span><span class="st">'</span>, colors<span class="op">=</span>colors)</span>
 <span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>ax.axis(<span class="st">'equal'</span>) <span class="co"># ensures pie is drawn as circle</span></span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Figure 2: Sentiment Score Distribution'</span>)</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Figure 1: Sentiment Score Distribution'</span>)</span>
 <span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
@@ -527,7 +497,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This trend towards more negative emotion is represented in the pie chart above. 75.2% of Eminem’s songs have negative sentiments, with 40% of them carrying a strong negative sentiment score of -0.1 or below. By contrast, only 24.8% of Eminem’s songs are positive and only 18.1% of these convey a positive sentiment stronger than 0.1. Not only is the frequency of songs with negative sentiment greater than those with positive sentiments, but negative scores are more likely to be strong than positive scores. Additionally, by observing the peaks of the bar charts above, the strongest negative sentiment appears to almost always surpass the strongest positive sentiment.</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A trend towards more negative emotion is represented in the pie chart above. 75.2% of Eminem’s songs have negative sentiments, with 40% of them carrying a strong negative sentiment score of -0.1 or below. By contrast, only 24.8% of Eminem’s songs are positive and only 18.1% of these convey a positive sentiment stronger than 0.1. Not only is the frequency of songs with negative sentiment greater than those with positive sentiments, but negative scores are more likely to be strong than positive scores.</p>
 <div id="8904cb38" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Show the code</summary>
@@ -554,7 +524,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>bars2 <span class="op">=</span> ax.bar(x <span class="op">+</span> width<span class="op">/</span><span class="dv">2</span>, neg_scores, width, label<span class="op">=</span><span class="st">'Negative'</span>, color<span class="op">=</span><span class="st">'purple'</span>)</span>
 <span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Albums'</span>)</span>
 <span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Sentiment Score Magnitude'</span>)</span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Figure 3: Comparison of Album's Most Positive and Negative Sentiment Scores"</span>)</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Figure 2: Comparison of Album's Most Positive and Negative Sentiment Scores"</span>)</span>
 <span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(x)</span>
 <span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels(album_names, rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)          </span>
 <span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>ax.legend()</span>
@@ -568,7 +538,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The above bar chart supports this observation, revealing only two albums - <em>Recovery</em> and <em>Music to Be Murdered By: Side B</em> - where the strongest positive score is greater than the strongest negative score. There is also a noticeable gap of at least 0.05 points between the positive and negative scores in his albums, with nearly half of these gaps being greater than 0.1.<br>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The above bar chart reveals there are only two albums - <em>Recovery</em> and <em>Music to Be Murdered By: Side B</em> - where the strongest positive score is greater than the strongest negative score. There is also a noticeable gap of at least 0.05 points between the positive and negative scores in his albums, with nearly half of these gaps being greater than 0.1.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The dominance of negative sentiment across Eminem’s work supports the broader trend in his music towards exploring topics of adversity and struggle. Furthermore, this degree of negative sentiment suggests that these difficult subjects are discussed in a complex manner, rather than glossing over their more painful aspects. The high degree of intensity indicates strong emotions as well. The most frequent words with negative sentiment, therefore, are expected to be explicit and aggressive language, rather than the more mellow tone which distressed language conveys.</p>
 <div id="cb3898a6" class="cell" data-execution_count="10">
 <details class="code-fold">
@@ -593,7 +563,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  colors <span class="op">=</span> [<span class="st">'orange'</span> <span class="cf">if</span> score <span class="op">&gt;=</span> <span class="dv">0</span> <span class="cf">else</span> <span class="st">'purple'</span> <span class="cf">for</span> score <span class="kw">in</span> sent_score]</span>
 <span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
 <span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>  plt.bar(album_names, sent_score, color<span class="op">=</span>colors) <span class="co"># changed from song name to track number, as names were too long</span></span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 4: Album Average Sentiment Score'</span>)</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 3: Album Average Sentiment Score'</span>)</span>
 <span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>  plt.xlabel(<span class="st">'Album'</span>)</span>
 <span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>  plt.ylabel(<span class="st">'Sentiment'</span>)</span>
 <span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>  plt.xticks(rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)</span>
@@ -637,7 +607,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>  red_patch <span class="op">=</span> mpatches.Patch(color<span class="op">=</span><span class="st">'red'</span>, label<span class="op">=</span><span class="st">'Persona in Album Title'</span>)</span>
 <span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  plt.legend(handles<span class="op">=</span>[red_patch])</span>
 <span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 5: Album Average Sentiment Score'</span>)</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 4: Album Average Sentiment Score'</span>)</span>
 <span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>  plt.xlabel(<span class="st">'Album'</span>)</span>
 <span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>  plt.ylabel(<span class="st">'Sentiment'</span>)</span>
 <span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>  plt.xticks(rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)</span>
@@ -768,7 +738,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a>    ]</span>
 <span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a>  plt.legend(handles<span class="op">=</span>patches)</span>
 <span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a>  fig.text(<span class="fl">0.5</span>, <span class="fl">0.01</span>, <span class="st">"Figure 6: 10 Most Common Negative Words"</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
+<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a>  fig.text(<span class="fl">0.5</span>, <span class="fl">0.01</span>, <span class="st">"Figure 5: 10 Most Common Negative Words"</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
 <span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a>  plt.tight_layout(rect<span class="op">=</span>[<span class="dv">0</span>, <span class="fl">0.02</span>, <span class="dv">1</span>, <span class="dv">1</span>])  <span class="co"># adjusts the space for caption without overlap</span></span>
 <span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a>plot_negative_sentiment_words(album_common_sentiment(word_lyrics)[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -818,7 +788,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>        startangle<span class="op">=</span><span class="dv">140</span>  <span class="co"># change angle to display aggression and distress at top</span></span>
 <span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>  ax.legend(wedges, categories, title<span class="op">=</span><span class="st">"Categories"</span>, loc<span class="op">=</span><span class="st">"center left"</span>, bbox_to_anchor<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">1</span>))</span>
-<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 7: Distribution of Negative Sentiment'</span>)</span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 6: Distribution of Negative Sentiment'</span>)</span>
 <span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>negative_pie_chart(album_common_sentiment(word_lyrics)[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
@@ -872,7 +842,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add the legend to the figure</span></span>
 <span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a>  plt.legend(handles<span class="op">=</span>patches)</span>
 <span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a>  fig.text(<span class="fl">0.5</span>, <span class="fl">0.01</span>, <span class="st">"Figure 8: 10 Most Common Positive Words"</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
+<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a>  fig.text(<span class="fl">0.5</span>, <span class="fl">0.01</span>, <span class="st">"Figure 7: 10 Most Common Positive Words"</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
 <span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a>  plt.tight_layout(rect<span class="op">=</span>[<span class="dv">0</span>, <span class="fl">0.02</span>, <span class="dv">1</span>, <span class="dv">1</span>])  <span class="co"># adjusts the space for caption without overlap</span></span>
 <span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a>plot_positive_sentiment_words(album_common_sentiment(word_lyrics)[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
