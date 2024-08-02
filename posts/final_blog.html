@@ -216,8 +216,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ol>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This resulted in an original collection size of 13 albums to analyze. Upon further investigation, <em>Eminem: The Re-Up</em> was found to also be a compilation album, bringing the collection size down to 12 albums.</p>
 <p><strong>Collecting the Data</strong><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;It quickly became apparent that Eminem’s lyrics would need to be webscraped, as the many databases online created to store and present musical artist’s lyrics only contained Eminem’s first couple releases. Genius.com was selected, due to my personal favorable experience with the website and the vast lyrical library it contains. A custom web scraper was coded in Python, using the Python libraries <em>request</em> and <em>BeautifulSoup</em>. After scraping the lyrics for every song, the data was organized into a nested dictionary, with the hierarchy of album_name –&gt; song_name –&gt; lyrics.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A major challenge was getting past Genius.com’s bot detection and coverage by Cloudflare. Midway through testing the scraper in the project’s Jupyter server, my requests stopped working, encountering a 403 output. To get around this, I found I needed to run my code in my local environment. I utilized Python’s proxy library and rotated proxies using my PC’s terminal. The data was then exported to the Git repository by saving the dictionary into the .txt file “lyrics_lines.txt” using Python’s <em>json</em> library.</p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;It quickly became apparent that Eminem’s lyrics would need to be webscraped, as the many databases online created to store and present musical artist’s lyrics only contained Eminem’s first couple releases. Genius.com was selected, due to my personal favorable experience with the website and the vast lyrical library it contains. A custom web scraper was coded in Python, using the Python libraries <em>request</em> and <em>BeautifulSoup</em>.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A major challenge was getting past Genius.com’s bot detection and coverage by Cloudflare. Midway through testing the scraper in the project’s Jupyter server, my requests stopped working, encountering a 403 output. To get around this, I found I needed to run my code in my local environment. I utilized Python’s proxy library and rotated proxies using my PC’s terminal. The data was then exported and saved to <em>lyrics_lines.txt</em>.</p>
 <div id="98585bf0" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Show the code</summary>
@@ -305,7 +305,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 </div>
 <p><strong>Cleaning the Data</strong><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Using <em>json</em>, the data was imported as a dictionary into the repository notebook. Before sentiment analysis could begin, the raw textual data required additional cleaning. Many of the scraped song names and lyrics contained non-ASCII characters. In addition, certain character sequences characteristic of html coding, such as “\‘” and ’xa0’, needed to be replaced with their ASCII counterparts. While VADER, the sentiment analyzer chosen for this project, is capable of handling non-ASCII characters, its performance might not be optimal when handling them. In addition, structural indicators such as [Verse 1] and [Chorus], as well as noise descriptions such as *camera flashes*, needed to be removed in order to focus solely on lyrical content. Finally, excess white space and consecutive newlines were handled. The cleaning of the data was accomplished using 2 Python functions, one to use on the track titles and the other to clean the lyrical texts.</p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Before sentiment analysis could begin, the raw textual data required additional cleaning. Many of the scraped song names and lyrics contained non-ASCII characters. In addition, certain character sequences characteristic of html coding, such as “\‘” and ’xa0’, needed to be replaced with their ASCII counterparts. While VADER, the sentiment analyzer chosen for this project, is capable of handling non-ASCII characters, its performance might not be optimal when handling them. In addition, structural indicators such as [Verse 1] and [Chorus], as well as noise descriptions such as *camera flashes*, needed to be removed in order to focus solely on lyrical content. Finally, excess white space and consecutive newlines were handled.</p>
 <div id="afdf2b36" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Show the code</summary>
@@ -376,7 +376,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 </div>
 <p><strong>Calculating Sentiment</strong><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sentiment is calculated using a nested for loop. The sentiment analyzer is run on every phrase in a song, and then each compound score (the sentiment accounting for both positive and negative scores) is added together to form the song’s sentiment score. The album’s total sentiment score is then the sum of its track’s sentiment scores.</p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Each song’s sentiment score was originally the sum of all line’s sentiment scores. However, this method fails to account for the varying album sizes and the different song lengths. A 4-minute song will naturally have a higher score than a 30-second intro song, just as an album with 18 tracks will be more likely to have a greater score than a 12-track album. Averaging each song’s sentiment by dividing the sum phrase sentiment by the number of phrases in each song will provide a more normalized view and mitigate any distortions due to varying line counts. Repeating this approach when calculating album sentiment scores will ensure that the differing album lengths also does not cause any distortions.</p>
 <div id="43509f3e" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Show the code</summary>
@@ -393,101 +393,173 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>            song_sentiment <span class="op">+=</span> sia.polarity_scores(bars)[<span class="st">'compound'</span>] <span class="co"># update song_sentiment</span></span>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>      divided_lyrics[album][song][<span class="st">'s-sentiment'</span>] <span class="op">=</span> song_sentiment</span>
 <span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>      album_sentiment <span class="op">+=</span> song_sentiment <span class="co"># update album_sentiment</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  divided_lyrics[album][<span class="st">'a-sentiment'</span>] <span class="op">=</span> album_sentiment</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;However, this method fails to account for the varying album sizes and the different song lengths. A 4-minute song will naturally have a higher score than a 30-second intro song, just as an album with 18 tracks will be more likely to have a greater score than a 12-track album. Averaging each song’s sentiment by dividing the sum phrase sentiment by the number of phrases in each song will provide a more normalized view and mitigate any distortions due to varying line counts. Repeating this approach when calculating album sentiment scores will ensure that the differing album lengths also does not cause any distortions.</p>
-<div id="84515a4f" class="cell" data-execution_count="6">
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># calculating average sentiment scores for songs and albums.</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>sia <span class="op">=</span> vader.SentimentIntensityAnalyzer()</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> album, tracks <span class="kw">in</span> divided_lyrics.items():</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  album_size <span class="op">=</span> <span class="dv">0</span>                             <span class="co"># size of album initialized as zero</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  album_sentiment <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> song, lines <span class="kw">in</span> tracks.items(): </span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    song_sentiment <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">isinstance</span>(lines, <span class="bu">dict</span>): </span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>      song_size <span class="op">=</span> <span class="dv">0</span>                          <span class="co"># size of song initialized as zero</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>      album_size <span class="op">+=</span> <span class="dv">1</span>                        <span class="co"># increment album size for each song   </span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> lyrics, l <span class="kw">in</span> lines.items(): </span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">isinstance</span>(l, <span class="bu">list</span>):</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>          <span class="cf">for</span> bars <span class="kw">in</span> l:</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>            song_size <span class="op">+=</span> <span class="dv">1</span>                   <span class="co"># increment song size for each line</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>            song_sentiment <span class="op">+=</span> sia.polarity_scores(bars)[<span class="st">'compound'</span>]</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> song_size <span class="op">!=</span> <span class="dv">0</span>:      <span class="co"># prevents dividing by zero for instrumental songs</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>        average_sent_score <span class="op">=</span> song_sentiment <span class="op">/</span> song_size <span class="co"># take the average</span></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>      divided_lyrics[album][song][<span class="st">'s-sentiment'</span>] <span class="op">=</span> average_sent_score</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>      album_sentiment <span class="op">+=</span> average_sent_score</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  divided_lyrics[album][<span class="st">'a-sentiment'</span>] <span class="op">=</span> album_sentiment <span class="op">/</span> album_size <span class="co"># take the average</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  divided_lyrics[album][<span class="st">'a-sentiment'</span>] <span class="op">=</span> album_sentiment</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="co"># calculating average sentiment scores for songs and albums.</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>sia <span class="op">=</span> vader.SentimentIntensityAnalyzer()</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> album, tracks <span class="kw">in</span> divided_lyrics.items():</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  album_size <span class="op">=</span> <span class="dv">0</span>                             <span class="co"># size of album initialized as zero</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  album_sentiment <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> song, lines <span class="kw">in</span> tracks.items(): </span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    song_sentiment <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">isinstance</span>(lines, <span class="bu">dict</span>): </span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>      song_size <span class="op">=</span> <span class="dv">0</span>                          <span class="co"># size of song initialized as zero</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>      album_size <span class="op">+=</span> <span class="dv">1</span>                        <span class="co"># increment album size for each song   </span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> lyrics, l <span class="kw">in</span> lines.items(): </span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">isinstance</span>(l, <span class="bu">list</span>):</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>          <span class="cf">for</span> bars <span class="kw">in</span> l:</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>            song_size <span class="op">+=</span> <span class="dv">1</span>                   <span class="co"># increment song size for each line</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>            song_sentiment <span class="op">+=</span> sia.polarity_scores(bars)[<span class="st">'compound'</span>]</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> song_size <span class="op">!=</span> <span class="dv">0</span>:      <span class="co"># prevents dividing by zero for instrumental songs</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>        average_sent_score <span class="op">=</span> song_sentiment <span class="op">/</span> song_size <span class="co"># take the average</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>      divided_lyrics[album][song][<span class="st">'s-sentiment'</span>] <span class="op">=</span> average_sent_score</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>      album_sentiment <span class="op">+=</span> average_sent_score</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>  divided_lyrics[album][<span class="st">'a-sentiment'</span>] <span class="op">=</span> album_sentiment <span class="op">/</span> album_size <span class="co"># take the average</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
 <section id="results" class="level2">
 <h2 class="anchored" data-anchor-id="results">Results</h2>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;To visualize the overall sentiment in Eminem’s albums, a colored pie chart was used to display the frequencies of different sentiment strengths.</p>
-<div id="c276d45e" class="cell" data-scrolled="false" data-execution_count="7">
+<div id="c276d45e" class="cell" data-scrolled="false" data-execution_count="6">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># transforms dictionary into a list of tuples </span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># structured [(album, [(song, score)])]</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># input divided_lyrics</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># outputs as list of tuples, only includes album, song, and s-sentiment</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_sentiment_songs(album_dict):</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  album_scores <span class="op">=</span> []</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> key, value <span class="kw">in</span> album_dict.items():</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    song_scores <span class="op">=</span> []</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, v <span class="kw">in</span> value.items():</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="bu">isinstance</span>(v, <span class="bu">dict</span>):      <span class="co"># if not album sentiment</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> a, b <span class="kw">in</span> v.items():</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> <span class="bu">isinstance</span>(b, <span class="bu">float</span>): <span class="co"># if song sentiment</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>            song_scores.append((k, b))</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    album_scores.append((key, song_scores))</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> album_scores</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>album_plot <span class="op">=</span> plot_sentiment_songs(divided_lyrics)</span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co"># reorder albums by order of release</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>release_order <span class="op">=</span> [<span class="dv">9</span>, <span class="dv">0</span>, <span class="dv">6</span>, <span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">8</span>, <span class="dv">12</span>] </span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>data_set <span class="op">=</span> []</span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> release_order:</span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  data_set.append(album_plot[i])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># transforms dictionary into a list of tuples </span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># structured [(album, [(song, score)])]</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># input divided_lyrics</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># outputs as list of tuples, only includes album, song, and s-sentiment</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_sentiment_songs(album_dict):</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  album_scores <span class="op">=</span> []</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> key, value <span class="kw">in</span> album_dict.items():</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    song_scores <span class="op">=</span> []</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, v <span class="kw">in</span> value.items():</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="bu">isinstance</span>(v, <span class="bu">dict</span>):      <span class="co"># if not album sentiment</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> a, b <span class="kw">in</span> v.items():</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> <span class="bu">isinstance</span>(b, <span class="bu">float</span>): <span class="co"># if song sentiment</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>            song_scores.append((k, b))</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    album_scores.append((key, song_scores))</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> album_scores</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>album_plot <span class="op">=</span> plot_sentiment_songs(divided_lyrics)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="co"># reorder albums by order of release</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>release_order <span class="op">=</span> [<span class="dv">9</span>, <span class="dv">0</span>, <span class="dv">6</span>, <span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">8</span>, <span class="dv">12</span>] </span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>data_set <span class="op">=</span> []</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> release_order:</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  data_set.append(album_plot[i])</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="co"># pie chart</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>very_neg <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>very_pos <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>pos <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>neg <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="co"># calculate frequency of sentiment strengths</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>all_scores <span class="op">=</span> []</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a <span class="kw">in</span> data_set:</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>  sent_scores <span class="op">=</span> [item[<span class="dv">1</span>] <span class="cf">for</span> item <span class="kw">in</span> a[<span class="dv">1</span>]]</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>  all_scores <span class="op">+=</span> sent_scores</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> s <span class="kw">in</span> all_scores:</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> s <span class="op">&lt;=</span> <span class="op">-</span><span class="fl">.1</span>:</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>    very_neg <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>  <span class="cf">elif</span> s <span class="op">&gt;</span> <span class="op">-</span><span class="fl">.1</span> <span class="kw">and</span> s <span class="op">&lt;=</span> <span class="dv">0</span>:</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>    neg <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>  <span class="cf">elif</span> s <span class="op">&lt;</span> <span class="fl">.1</span> <span class="kw">and</span> s <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>    pos <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>  <span class="cf">elif</span> s <span class="op">&gt;=</span> <span class="fl">.1</span>:</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>    very_pos <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a><span class="co"># plot the pie chart</span></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>categories <span class="op">=</span> [<span class="st">'Strong Negative (Below -0.1)'</span>, <span class="st">'Negative'</span>, <span class="st">'Strong Positive (above 0.1)'</span>, <span class="st">'Positive'</span>]</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>values <span class="op">=</span> [very_neg, neg, very_pos, pos]</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">'purple'</span>, <span class="st">'blue'</span>, <span class="st">'yellow'</span>, <span class="st">'orange'</span>]</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">8</span>)) </span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>ax.pie(values, labels<span class="op">=</span>categories, autopct<span class="op">=</span><span class="st">'</span><span class="sc">%1.1f%%</span><span class="st">'</span>, colors<span class="op">=</span>colors)</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>ax.axis(<span class="st">'equal'</span>) <span class="co"># ensures pie is drawn as circle</span></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Figure 1: Sentiment Score Distribution'</span>)</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="final_blog_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img"></p>
+</figure>
 </div>
-<div id="45ee42ff" class="cell" data-execution_count="8">
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A trend towards more negative emotion is represented in Figure 1. 75.2% of Eminem’s songs have negative sentiments, with 40% of them carrying a strong negative sentiment score of -0.1 or below. By contrast, only 24.8% of Eminem’s songs are positive and only 18.1% of these convey a positive sentiment stronger than 0.1. Not only is the frequency of songs with negative sentiment greater than those with positive sentiments, but negative scores are more likely to be strong than positive scores.</p>
+<div id="8904cb38" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pie chart</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>very_neg <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>very_pos <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>pos <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>neg <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># calculate frequency of sentiment strengths</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>all_scores <span class="op">=</span> []</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a <span class="kw">in</span> data_set:</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  sent_scores <span class="op">=</span> [item[<span class="dv">1</span>] <span class="cf">for</span> item <span class="kw">in</span> a[<span class="dv">1</span>]]</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  all_scores <span class="op">+=</span> sent_scores</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> s <span class="kw">in</span> all_scores:</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> s <span class="op">&lt;=</span> <span class="op">-</span><span class="fl">.1</span>:</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    very_neg <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">elif</span> s <span class="op">&gt;</span> <span class="op">-</span><span class="fl">.1</span> <span class="kw">and</span> s <span class="op">&lt;=</span> <span class="dv">0</span>:</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    neg <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">elif</span> s <span class="op">&lt;</span> <span class="fl">.1</span> <span class="kw">and</span> s <span class="op">&gt;</span> <span class="dv">0</span>:</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    pos <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">elif</span> s <span class="op">&gt;=</span> <span class="fl">.1</span>:</span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    very_pos <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co"># plot the pie chart</span></span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>categories <span class="op">=</span> [<span class="st">'Strong Negative (Below -0.1)'</span>, <span class="st">'Negative'</span>, <span class="st">'Strong Positive (above 0.1)'</span>, <span class="st">'Positive'</span>]</span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>values <span class="op">=</span> [very_neg, neg, very_pos, pos]</span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">'purple'</span>, <span class="st">'blue'</span>, <span class="st">'yellow'</span>, <span class="st">'orange'</span>]</span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">8</span>)) </span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>ax.pie(values, labels<span class="op">=</span>categories, autopct<span class="op">=</span><span class="st">'</span><span class="sc">%1.1f%%</span><span class="st">'</span>, colors<span class="op">=</span>colors)</span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>ax.axis(<span class="st">'equal'</span>) <span class="co"># ensures pie is drawn as circle</span></span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Figure 1: Sentiment Score Distribution'</span>)</span>
-<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>album_names <span class="op">=</span> []</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>pos_scores <span class="op">=</span> []</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>neg_scores <span class="op">=</span> []</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># in order, add the strongest positive and negative scores to lists</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a <span class="kw">in</span> data_set:</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  album_names.append(a[<span class="dv">0</span>])</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  sent_scores <span class="op">=</span> [item[<span class="dv">1</span>] <span class="cf">for</span> item <span class="kw">in</span> a[<span class="dv">1</span>]]</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  pos_scores.append(<span class="bu">max</span>(sent_scores))</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  neg_scores.append(<span class="bu">abs</span>(<span class="bu">min</span>(sent_scores)))</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co"># plotting the bars</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>num_alb <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.arange(num_alb)  <span class="co"># label locations</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>width <span class="op">=</span> <span class="fl">0.35</span>  <span class="co"># bar width</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Plotting the bars</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>bars1 <span class="op">=</span> ax.bar(x <span class="op">-</span> width<span class="op">/</span><span class="dv">2</span>, pos_scores, width, label<span class="op">=</span><span class="st">'Positive'</span>, color<span class="op">=</span><span class="st">'orange'</span>)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>bars2 <span class="op">=</span> ax.bar(x <span class="op">+</span> width<span class="op">/</span><span class="dv">2</span>, neg_scores, width, label<span class="op">=</span><span class="st">'Negative'</span>, color<span class="op">=</span><span class="st">'purple'</span>)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Albums'</span>)</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Sentiment Score Magnitude'</span>)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Figure 2: Comparison of Album's Most Positive and Negative Sentiment Scores"</span>)</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(x)</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels(album_names, rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)          </span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>ax.legend()</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="final_blog_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Figure 2 reveals there are only two albums - <em>Recovery</em> and <em>Music to Be Murdered By: Side B</em> - where the strongest positive score is greater than the strongest negative score. There is also a noticeable gap of at least 0.05 points between the positive and negative scores in his albums, with nearly half of these gaps being greater than 0.1.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The dominance of negative sentiment across Eminem’s work supports the broader trend in his music towards exploring topics of adversity and struggle. Furthermore, this degree of negative sentiment suggests that these difficult subjects are discussed in a complex manner, rather than glossing over their more painful aspects. The high degree of intensity indicates strong emotions as well. The most frequent words with negative sentiment, therefore, are expected to be explicit and aggressive language, rather than the more mellow tone which distressed language conveys.</p>
+<div id="cb3898a6" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plotting average sentiment for each album in order</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># input divided_lyrics</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># output plots a-sentiment as bar chart</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_album_sentiment(d):</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  album_sent <span class="op">=</span> []</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> key, value <span class="kw">in</span> d.items():</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, v <span class="kw">in</span> value.items():</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="bu">isinstance</span>(v, <span class="bu">float</span>):  <span class="co"># if sentiment score</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        album_sent.append((key, v))</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  release_order <span class="op">=</span> [<span class="dv">9</span>, <span class="dv">0</span>, <span class="dv">6</span>, <span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">8</span>, <span class="dv">12</span>]</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  album_plot <span class="op">=</span> []</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> i <span class="kw">in</span> release_order:</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    album_plot.append(album_sent[i])</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  album_names <span class="op">=</span> [t[<span class="dv">0</span>] <span class="cf">for</span> t <span class="kw">in</span> album_plot]</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  sent_score <span class="op">=</span> [t[<span class="dv">1</span>] <span class="cf">for</span> t <span class="kw">in</span> album_plot]</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  colors <span class="op">=</span> [<span class="st">'orange'</span> <span class="cf">if</span> score <span class="op">&gt;=</span> <span class="dv">0</span> <span class="cf">else</span> <span class="st">'purple'</span> <span class="cf">for</span> score <span class="kw">in</span> sent_score]</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  plt.bar(album_names, sent_score, color<span class="op">=</span>colors) <span class="co"># changed from song name to track number, as names were too long</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 3: Album Average Sentiment Score'</span>)</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>  plt.xlabel(<span class="st">'Album'</span>)</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>  plt.ylabel(<span class="st">'Sentiment'</span>)</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>  plt.xticks(rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>plot_album_sentiment(divided_lyrics)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
@@ -497,38 +569,41 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A trend towards more negative emotion is represented in the pie chart above. 75.2% of Eminem’s songs have negative sentiments, with 40% of them carrying a strong negative sentiment score of -0.1 or below. By contrast, only 24.8% of Eminem’s songs are positive and only 18.1% of these convey a positive sentiment stronger than 0.1. Not only is the frequency of songs with negative sentiment greater than those with positive sentiments, but negative scores are more likely to be strong than positive scores.</p>
-<div id="8904cb38" class="cell" data-execution_count="9">
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The dominance of negative sentiment across his works is also represented in the sentiment scores of his albums. No album, as presented in Figure 3, has an overall positive sentiment. The albums with the strongest negative sentiment are his first three albums, while both <em>The Marshall Mathers LP 2</em> and <em>The Death of Slim Shady (Coup De Grace)</em> are outliers for their strong negative sentiments in his later works.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Central to Eminem’s identity is his two personas. Eminem is his name as the rapper. He has an alter-ego called Slim Shady, who is behind some of Eminem’s most explicit and graphic songs. Slim Shady embodies the rage and pain behind Eminem’s experiences. This persona was most prominent in his first three albums, which is reflected by the fact that these three hold the strongest negative sentiment. Eminem’s more mature and vulnerable persona is Marshall Mathers, which is his birth name. Eminem’s more introspective lyrics are most often the work of this persona. Interestingly, the five albums with the strongest negative sentiment, as well as being the only albums with sentiments below -0.05, are also the five albums which contain one of his three personas (‘Slim Shady’, ‘Marshall Mathers’, ‘Eminem’) in the album title. This correlation suggests a close relationship between Eminem’s personal struggles and intense negative sentiment. This relationship can be seen below in Figure 4.</p>
+<div id="8cee8e57" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>album_names <span class="op">=</span> []</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>pos_scores <span class="op">=</span> []</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>neg_scores <span class="op">=</span> []</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># in order, add the strongest positive and negative scores to lists</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a <span class="kw">in</span> data_set:</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  album_names.append(a[<span class="dv">0</span>])</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  sent_scores <span class="op">=</span> [item[<span class="dv">1</span>] <span class="cf">for</span> item <span class="kw">in</span> a[<span class="dv">1</span>]]</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  pos_scores.append(<span class="bu">max</span>(sent_scores))</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  neg_scores.append(<span class="bu">abs</span>(<span class="bu">min</span>(sent_scores)))</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co"># plotting the bars</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>num_alb <span class="op">=</span> <span class="dv">12</span></span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.arange(num_alb)  <span class="co"># label locations</span></span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>width <span class="op">=</span> <span class="fl">0.35</span>  <span class="co"># bar width</span></span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Plotting the bars</span></span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>bars1 <span class="op">=</span> ax.bar(x <span class="op">-</span> width<span class="op">/</span><span class="dv">2</span>, pos_scores, width, label<span class="op">=</span><span class="st">'Positive'</span>, color<span class="op">=</span><span class="st">'orange'</span>)</span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>bars2 <span class="op">=</span> ax.bar(x <span class="op">+</span> width<span class="op">/</span><span class="dv">2</span>, neg_scores, width, label<span class="op">=</span><span class="st">'Negative'</span>, color<span class="op">=</span><span class="st">'purple'</span>)</span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Albums'</span>)</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Sentiment Score Magnitude'</span>)</span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Figure 2: Comparison of Album's Most Positive and Negative Sentiment Scores"</span>)</span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(x)</span>
-<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels(album_names, rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)          </span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>ax.legend()</span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># same as plot_album_sentiment, but adds color and a legend</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_album_sentiment_colored(d):</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  album_sent <span class="op">=</span> []</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> key, value <span class="kw">in</span> d.items():</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, v <span class="kw">in</span> value.items():</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="bu">isinstance</span>(v, <span class="bu">float</span>):  <span class="co"># each sentiment score</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        album_sent.append((key, v))</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  release_order <span class="op">=</span> [<span class="dv">9</span>, <span class="dv">0</span>, <span class="dv">6</span>, <span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">8</span>, <span class="dv">12</span>]</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  album_plot <span class="op">=</span> []</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> i <span class="kw">in</span> release_order:</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    album_plot.append(album_sent[i])</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  album_names <span class="op">=</span> [t[<span class="dv">0</span>] <span class="cf">for</span> t <span class="kw">in</span> album_plot]</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  sent_score <span class="op">=</span> [t[<span class="dv">1</span>] <span class="cf">for</span> t <span class="kw">in</span> album_plot]</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># select and color the persona's albums</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  special_albums <span class="op">=</span> [<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">6</span>, <span class="dv">11</span>]</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  colors <span class="op">=</span> [<span class="st">'red'</span> <span class="cf">if</span> i <span class="kw">in</span> special_albums <span class="cf">else</span> <span class="st">'black'</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(album_names))]</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  plt.bar(album_names, sent_score, color<span class="op">=</span>colors)</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># add legend</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  red_patch <span class="op">=</span> mpatches.Patch(color<span class="op">=</span><span class="st">'red'</span>, label<span class="op">=</span><span class="st">'Persona in Album Title'</span>)</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  plt.legend(handles<span class="op">=</span>[red_patch])</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 4: Album Average Sentiment Score'</span>)</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>  plt.xlabel(<span class="st">'Album'</span>)</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>  plt.ylabel(<span class="st">'Sentiment'</span>)</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>  plt.xticks(rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>plot_album_sentiment_colored(divided_lyrics)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
@@ -538,36 +613,119 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The above bar chart reveals there are only two albums - <em>Recovery</em> and <em>Music to Be Murdered By: Side B</em> - where the strongest positive score is greater than the strongest negative score. There is also a noticeable gap of at least 0.05 points between the positive and negative scores in his albums, with nearly half of these gaps being greater than 0.1.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The dominance of negative sentiment across Eminem’s work supports the broader trend in his music towards exploring topics of adversity and struggle. Furthermore, this degree of negative sentiment suggests that these difficult subjects are discussed in a complex manner, rather than glossing over their more painful aspects. The high degree of intensity indicates strong emotions as well. The most frequent words with negative sentiment, therefore, are expected to be explicit and aggressive language, rather than the more mellow tone which distressed language conveys.</p>
-<div id="cb3898a6" class="cell" data-execution_count="10">
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;As stated before, Eminem is known for his explicit and crass language, his aggressive and violent themes, and deep exploration into dark and emotionally intense themes. In order to better understand how these topics are represented by the sentiment contained in his works, the ten most frequent negative and positive words will be presented. When processing these words, the use of slang and informal language had to be taken into account. For example, the word <em>killing</em> can be used as violence (“I’m killing you”), as a way to express wealth (“Rob the bank, you’ll make a killing”), and as an expression of pride (“You’re killing it man”). To avoid this distortion, stemming the words was avoided.</p>
+<div id="6f1b7261" class="cell" data-scrolled="false" data-execution_count="10">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plotting average sentiment for each album in order</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># input divided_lyrics</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># output plots a-sentiment as bar chart</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_album_sentiment(d):</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  album_sent <span class="op">=</span> []</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> key, value <span class="kw">in</span> d.items():</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, v <span class="kw">in</span> value.items():</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="bu">isinstance</span>(v, <span class="bu">float</span>):  <span class="co"># if sentiment score</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>        album_sent.append((key, v))</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  release_order <span class="op">=</span> [<span class="dv">9</span>, <span class="dv">0</span>, <span class="dv">6</span>, <span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">8</span>, <span class="dv">12</span>]</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  album_plot <span class="op">=</span> []</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> i <span class="kw">in</span> release_order:</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    album_plot.append(album_sent[i])</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  album_names <span class="op">=</span> [t[<span class="dv">0</span>] <span class="cf">for</span> t <span class="kw">in</span> album_plot]</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  sent_score <span class="op">=</span> [t[<span class="dv">1</span>] <span class="cf">for</span> t <span class="kw">in</span> album_plot]</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  colors <span class="op">=</span> [<span class="st">'orange'</span> <span class="cf">if</span> score <span class="op">&gt;=</span> <span class="dv">0</span> <span class="cf">else</span> <span class="st">'purple'</span> <span class="cf">for</span> score <span class="kw">in</span> sent_score]</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>  plt.bar(album_names, sent_score, color<span class="op">=</span>colors) <span class="co"># changed from song name to track number, as names were too long</span></span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 3: Album Average Sentiment Score'</span>)</span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>  plt.xlabel(<span class="st">'Album'</span>)</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>  plt.ylabel(<span class="st">'Sentiment'</span>)</span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>  plt.xticks(rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)</span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>plot_album_sentiment(divided_lyrics)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># creates a new dictionary replacing the list of lines with a list of individual words from divided_lyrics</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> words_dict(d):</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  new_dict <span class="op">=</span> {}</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> key, value <span class="kw">in</span> d.items():</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> key <span class="op">!=</span> <span class="st">'Eminem Presents the Re-Up'</span>:</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>      new_dict[key] <span class="op">=</span> {}</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="bu">isinstance</span>(value, <span class="bu">dict</span>): <span class="co"># if not a-sentiment</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> k, v <span class="kw">in</span> value.items():</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> <span class="bu">isinstance</span>(v, <span class="bu">dict</span>): <span class="co"># if not s-sentiment</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>            lyrics <span class="op">=</span> <span class="st">" "</span>.join(v[<span class="st">'lyrics'</span>]) <span class="co"># join all lines together separated by white space</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>            <span class="co"># split, strip punctuation, lower-case all words, and remove stop words</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>            all_words <span class="op">=</span> lyrics.split()</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>            lower_words <span class="op">=</span> [word.strip(string.punctuation).lower() <span class="cf">for</span> word <span class="kw">in</span> all_words]</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>            new_dict[key][k] <span class="op">=</span> [w <span class="cf">for</span> w <span class="kw">in</span> lower_words <span class="cf">if</span> w <span class="kw">not</span> <span class="kw">in</span> myStopWords]</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> new_dict</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>word_lyrics <span class="op">=</span> words_dict(divided_lyrics)</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="co"># returns a tuple containing all most common positive and negative words, and their frequencies for each album</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> album_common_sentiment(d):</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>  com_pos <span class="op">=</span> []</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>  com_neg <span class="op">=</span> []</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> album, songs <span class="kw">in</span> d.items():</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    all_lyrics <span class="op">=</span> []</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> key, lyrics <span class="kw">in</span> songs.items(): <span class="co"># add all words from songs to album lyrics</span></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>      all_lyrics <span class="op">+=</span> lyrics</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>    positive <span class="op">=</span> []</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>    negative <span class="op">=</span> []</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># find compound score of each word</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> word <span class="kw">in</span> all_lyrics:</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>      word_score <span class="op">=</span> sia.polarity_scores(word)</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> word_score[<span class="st">'compound'</span>] <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>        positive.append(word)</span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>      <span class="cf">elif</span> word_score[<span class="st">'compound'</span>] <span class="op">&lt;</span> <span class="dv">0</span>:</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>        negative.append(word)</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># list of (word, frequency) for 10 most common neg and pos</span></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>    common_positive <span class="op">=</span> nltk.FreqDist(positive).most_common(<span class="dv">10</span>)</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>    common_negative <span class="op">=</span> nltk.FreqDist(negative).most_common(<span class="dv">10</span>)</span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>    <span class="co"># add to tuple with album name</span></span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>    com_pos.append((album, common_positive))</span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>    com_neg.append((album, common_negative))</span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (com_pos, com_neg)  </span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a><span class="co"># language categories </span></span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>curse_words <span class="op">=</span> [<span class="st">'fuck'</span>, <span class="st">'ass'</span>, <span class="st">'shit'</span>, <span class="st">'damn'</span>, <span class="st">'bitch'</span>, <span class="st">'goddamn'</span>, <span class="st">'dick'</span>, <span class="st">'motherfucker'</span>, <span class="st">'motherfucking'</span>, <span class="st">'hell'</span>, <span class="st">'niggas'</span>]</span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>aggressive_words <span class="op">=</span> [<span class="st">'kill'</span>, <span class="st">'hurt'</span>, <span class="st">'fight'</span>, <span class="st">'cut'</span>, <span class="st">'crazy'</span>, <span class="st">'die'</span>, <span class="st">'hate'</span>]</span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>distress_words <span class="op">=</span> [<span class="st">'leave'</span>, <span class="st">'lose'</span>, <span class="st">'stop'</span>, <span class="st">'lost'</span>, <span class="st">'anxious'</span>, <span class="st">'hide'</span>, <span class="st">'regrets'</span>, <span class="st">'tired'</span>, <span class="st">'sorry'</span>, <span class="st">'falling'</span>, <span class="st">'alone'</span>, </span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>                  <span class="st">'pain'</span>, <span class="st">'hard'</span>, <span class="st">'worse'</span>]</span>
+<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a>word_categories <span class="op">=</span> {</span>
+<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a>  <span class="st">'curse_words'</span>: curse_words,</span>
+<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a>  <span class="st">'aggressive_words'</span>: aggressive_words,</span>
+<span id="cb11-56"><a href="#cb11-56" aria-hidden="true" tabindex="-1"></a>  <span class="st">'distress_words'</span>: distress_words,</span>
+<span id="cb11-57"><a href="#cb11-57" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-58"><a href="#cb11-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-59"><a href="#cb11-59" aria-hidden="true" tabindex="-1"></a><span class="co"># plots the most common negative words as horizontal bar charts</span></span>
+<span id="cb11-60"><a href="#cb11-60" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_negative_sentiment_words(neg_com):</span>
+<span id="cb11-61"><a href="#cb11-61" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-62"><a href="#cb11-62" aria-hidden="true" tabindex="-1"></a>  fig, axs <span class="op">=</span> plt.subplots(<span class="dv">6</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">24</span>))</span>
+<span id="cb11-63"><a href="#cb11-63" aria-hidden="true" tabindex="-1"></a>  axs <span class="op">=</span> axs.flatten()</span>
+<span id="cb11-64"><a href="#cb11-64" aria-hidden="true" tabindex="-1"></a>  release_order <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">0</span>, <span class="dv">5</span>, <span class="dv">3</span>, <span class="dv">6</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">4</span>, <span class="dv">9</span>, <span class="dv">7</span>, <span class="dv">11</span>]</span>
+<span id="cb11-65"><a href="#cb11-65" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(neg_com)):</span>
+<span id="cb11-66"><a href="#cb11-66" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> release_order[j]</span>
+<span id="cb11-67"><a href="#cb11-67" aria-hidden="true" tabindex="-1"></a>    this_album <span class="op">=</span> neg_com[i]</span>
+<span id="cb11-68"><a href="#cb11-68" aria-hidden="true" tabindex="-1"></a>    album_title <span class="op">=</span> this_album[<span class="dv">0</span>]</span>
+<span id="cb11-69"><a href="#cb11-69" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> this_album[<span class="dv">1</span>]</span>
+<span id="cb11-70"><a href="#cb11-70" aria-hidden="true" tabindex="-1"></a>    word, freq <span class="op">=</span> <span class="bu">zip</span>(<span class="op">*</span>words)</span>
+<span id="cb11-71"><a href="#cb11-71" aria-hidden="true" tabindex="-1"></a>    <span class="co"># inverse order so most common at top</span></span>
+<span id="cb11-72"><a href="#cb11-72" aria-hidden="true" tabindex="-1"></a>    word <span class="op">=</span> word[::<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb11-73"><a href="#cb11-73" aria-hidden="true" tabindex="-1"></a>    freq <span class="op">=</span> freq[::<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb11-74"><a href="#cb11-74" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-75"><a href="#cb11-75" aria-hidden="true" tabindex="-1"></a>    <span class="co"># map color to word category</span></span>
+<span id="cb11-76"><a href="#cb11-76" aria-hidden="true" tabindex="-1"></a>    color_map <span class="op">=</span> {</span>
+<span id="cb11-77"><a href="#cb11-77" aria-hidden="true" tabindex="-1"></a>      <span class="st">'curse_words'</span>: <span class="st">'red'</span>, </span>
+<span id="cb11-78"><a href="#cb11-78" aria-hidden="true" tabindex="-1"></a>      <span class="st">'aggressive_words'</span>: <span class="st">'orange'</span>,</span>
+<span id="cb11-79"><a href="#cb11-79" aria-hidden="true" tabindex="-1"></a>      <span class="st">'distress_words'</span>: <span class="st">'blue'</span>,</span>
+<span id="cb11-80"><a href="#cb11-80" aria-hidden="true" tabindex="-1"></a>      <span class="st">'default'</span>: <span class="st">'black'</span>,</span>
+<span id="cb11-81"><a href="#cb11-81" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb11-82"><a href="#cb11-82" aria-hidden="true" tabindex="-1"></a>    colors <span class="op">=</span> []</span>
+<span id="cb11-83"><a href="#cb11-83" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> w <span class="kw">in</span> word:</span>
+<span id="cb11-84"><a href="#cb11-84" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> w <span class="kw">in</span> word_categories[<span class="st">'distress_words'</span>]:</span>
+<span id="cb11-85"><a href="#cb11-85" aria-hidden="true" tabindex="-1"></a>            colors.append(color_map[<span class="st">'distress_words'</span>])</span>
+<span id="cb11-86"><a href="#cb11-86" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> w <span class="kw">in</span> word_categories[<span class="st">'curse_words'</span>]:</span>
+<span id="cb11-87"><a href="#cb11-87" aria-hidden="true" tabindex="-1"></a>            colors.append(color_map[<span class="st">'curse_words'</span>])</span>
+<span id="cb11-88"><a href="#cb11-88" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> w <span class="kw">in</span> word_categories[<span class="st">'aggressive_words'</span>]:</span>
+<span id="cb11-89"><a href="#cb11-89" aria-hidden="true" tabindex="-1"></a>            colors.append(color_map[<span class="st">'aggressive_words'</span>])</span>
+<span id="cb11-90"><a href="#cb11-90" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb11-91"><a href="#cb11-91" aria-hidden="true" tabindex="-1"></a>            colors.append(color_map[<span class="st">'default'</span>])</span>
+<span id="cb11-92"><a href="#cb11-92" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb11-93"><a href="#cb11-93" aria-hidden="true" tabindex="-1"></a>    <span class="co"># plot subgraphs</span></span>
+<span id="cb11-94"><a href="#cb11-94" aria-hidden="true" tabindex="-1"></a>    axs[j].barh(word, freq, color<span class="op">=</span>colors)</span>
+<span id="cb11-95"><a href="#cb11-95" aria-hidden="true" tabindex="-1"></a>    axs[j].set_title(album_title)</span>
+<span id="cb11-96"><a href="#cb11-96" aria-hidden="true" tabindex="-1"></a>    axs[j].set_xlabel(<span class="st">'Frequency'</span>)</span>
+<span id="cb11-97"><a href="#cb11-97" aria-hidden="true" tabindex="-1"></a>    axs[j].set_ylabel(<span class="st">'Word'</span>)</span>
+<span id="cb11-98"><a href="#cb11-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-99"><a href="#cb11-99" aria-hidden="true" tabindex="-1"></a>    patches <span class="op">=</span> [</span>
+<span id="cb11-100"><a href="#cb11-100" aria-hidden="true" tabindex="-1"></a>        mpatches.Patch(color<span class="op">=</span>color_map[<span class="st">'curse_words'</span>], label<span class="op">=</span><span class="st">'Explicit Language '</span>),</span>
+<span id="cb11-101"><a href="#cb11-101" aria-hidden="true" tabindex="-1"></a>        mpatches.Patch(color<span class="op">=</span>color_map[<span class="st">'aggressive_words'</span>], label<span class="op">=</span><span class="st">'Aggressive Language'</span>),</span>
+<span id="cb11-102"><a href="#cb11-102" aria-hidden="true" tabindex="-1"></a>        mpatches.Patch(color<span class="op">=</span>color_map[<span class="st">'distress_words'</span>], label<span class="op">=</span><span class="st">'Distressed Language'</span>),</span>
+<span id="cb11-103"><a href="#cb11-103" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb11-104"><a href="#cb11-104" aria-hidden="true" tabindex="-1"></a>  plt.legend(handles<span class="op">=</span>patches)</span>
+<span id="cb11-105"><a href="#cb11-105" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-106"><a href="#cb11-106" aria-hidden="true" tabindex="-1"></a>  fig.text(<span class="fl">0.5</span>, <span class="fl">0.01</span>, <span class="st">"Figure 5: 10 Most Common Negative Words"</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
+<span id="cb11-107"><a href="#cb11-107" aria-hidden="true" tabindex="-1"></a>  plt.tight_layout(rect<span class="op">=</span>[<span class="dv">0</span>, <span class="fl">0.02</span>, <span class="dv">1</span>, <span class="dv">1</span>])  <span class="co"># adjusts the space for caption without overlap</span></span>
+<span id="cb11-108"><a href="#cb11-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-109"><a href="#cb11-109" aria-hidden="true" tabindex="-1"></a>plot_negative_sentiment_words(album_common_sentiment(word_lyrics)[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
@@ -577,41 +735,46 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The dominance of negative sentiment across his works is also represented in the sentiment scores of his albums. No album, as presented above, has an overall positive sentiment. The albums with the strongest negative sentiment are his first three albums, while both <em>The Marshall Mathers LP 2</em> and <em>The Death of Slim Shady (Coup De Grace)</em> are outliers for their strong negative sentiments in his later works.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Central to Eminem’s identity is his two personas. Eminem is his name as the rapper. He has an alter-ego called Slim Shady, who is behind some of Eminem’s most explicit and graphic songs. Slim Shady embodies the rage and pain behind Eminem’s experiences. This persona was most prominent in his first three albums, which is reflected by the fact that these three hold the strongest negative sentiment. Eminem’s more mature and vulnerable persona is Marshall Mathers, which is his birth name. Eminem’s more introspective lyrics are most often the work of this persona. Interestingly, the five albums with the strongest negative sentiment, as well as being the only albums with sentiments below -0.05, are also the five albums which contain one of his three personas (‘Slim Shady’, ‘Marshall Mathers’, ‘Eminem’) in the album title. This correlation suggests a close relationship between Eminem’s personal struggles and intense negative sentiment. This relationship can be seen below.</p>
-<div id="8cee8e57" class="cell" data-execution_count="11">
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The overwhelming majority of words containing negative sentiment are curse words. This was expected, since explicit language is commonly being used to intensify sentiment. In the context of Eminem’s discography, this frequent cursing is reflected in the strong intensity of negative sentiment. It is also observed that most albums feature either mostly aggressive or mostly distressed language. The expectation was that the Figure 5 would reflect the theme of resilience by showing a clear majority of distressed language compared to aggressive language. This is because distressed language often portrays the challenges and internal conflicts faced by an individual. Contrastly, aggressive language typically focuses on confrontation and outwards expressions of hostility, which does not as clearly convey the strive for personal growth.</p>
+<div id="13377a1d" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># same as plot_album_sentiment, but adds color and a legend</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_album_sentiment_colored(d):</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  album_sent <span class="op">=</span> []</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> key, value <span class="kw">in</span> d.items():</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, v <span class="kw">in</span> value.items():</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="bu">isinstance</span>(v, <span class="bu">float</span>):  <span class="co"># each sentiment score</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>        album_sent.append((key, v))</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  release_order <span class="op">=</span> [<span class="dv">9</span>, <span class="dv">0</span>, <span class="dv">6</span>, <span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">8</span>, <span class="dv">12</span>]</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  album_plot <span class="op">=</span> []</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> i <span class="kw">in</span> release_order:</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    album_plot.append(album_sent[i])</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  album_names <span class="op">=</span> [t[<span class="dv">0</span>] <span class="cf">for</span> t <span class="kw">in</span> album_plot]</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  sent_score <span class="op">=</span> [t[<span class="dv">1</span>] <span class="cf">for</span> t <span class="kw">in</span> album_plot]</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># select and color the persona's albums</span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  special_albums <span class="op">=</span> [<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">6</span>, <span class="dv">11</span>]</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>  colors <span class="op">=</span> [<span class="st">'red'</span> <span class="cf">if</span> i <span class="kw">in</span> special_albums <span class="cf">else</span> <span class="st">'black'</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(album_names))]</span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>  plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>  plt.bar(album_names, sent_score, color<span class="op">=</span>colors)</span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># add legend</span></span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>  red_patch <span class="op">=</span> mpatches.Patch(color<span class="op">=</span><span class="st">'red'</span>, label<span class="op">=</span><span class="st">'Persona in Album Title'</span>)</span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  plt.legend(handles<span class="op">=</span>[red_patch])</span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 4: Album Average Sentiment Score'</span>)</span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>  plt.xlabel(<span class="st">'Album'</span>)</span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>  plt.ylabel(<span class="st">'Sentiment'</span>)</span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>  plt.xticks(rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)</span>
-<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>plot_album_sentiment_colored(divided_lyrics)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot distribution of categories in pie chart</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> negative_pie_chart(neg_com):</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># calculate frequency of each category</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  aggression <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  curses <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  distress <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  other <span class="op">=</span> <span class="dv">0</span> </span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(neg_com)):</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    this_album <span class="op">=</span> neg_com[i]</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    album_title <span class="op">=</span> this_album[<span class="dv">0</span>]</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> this_album[<span class="dv">1</span>]</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> w <span class="kw">in</span> words:</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> w[<span class="dv">0</span>] <span class="kw">in</span> word_categories[<span class="st">'distress_words'</span>]:</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>          distress <span class="op">+=</span> w[<span class="dv">1</span>]</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>      <span class="cf">elif</span> w[<span class="dv">0</span>] <span class="kw">in</span> word_categories[<span class="st">'curse_words'</span>]:</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>          curses <span class="op">+=</span> w[<span class="dv">1</span>]</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">elif</span> w[<span class="dv">0</span>] <span class="kw">in</span> word_categories[<span class="st">'aggressive_words'</span>]:</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>          aggression <span class="op">+=</span> w[<span class="dv">1</span>]</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>      <span class="cf">else</span>:</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>          other <span class="op">+=</span> w[<span class="dv">1</span>]</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>          </span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># plotting</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>  values <span class="op">=</span> [curses, distress, aggression, other]</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  categories <span class="op">=</span> [<span class="st">'Curses'</span>, <span class="st">'Distress'</span>, <span class="st">'Aggression'</span>, <span class="st">'Other'</span>]</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>  fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">8</span>))</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  wedges, texts, autotexts <span class="op">=</span> ax.pie(</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>        values, </span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>        labels<span class="op">=</span>categories, </span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>        autopct<span class="op">=</span><span class="st">'</span><span class="sc">%1.1f%%</span><span class="st">'</span>,  <span class="co"># Show percentages</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>        colors<span class="op">=</span>[<span class="st">'red'</span>,<span class="st">'blue'</span>,<span class="st">'orange'</span>,<span class="st">'gray'</span>], </span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>        startangle<span class="op">=</span><span class="dv">140</span>  <span class="co"># change angle to display aggression and distress at top</span></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>  ax.legend(wedges, categories, title<span class="op">=</span><span class="st">"Categories"</span>, loc<span class="op">=</span><span class="st">"center left"</span>, bbox_to_anchor<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">1</span>))</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 6: Distribution of Negative Sentiment'</span>)</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>negative_pie_chart(album_common_sentiment(word_lyrics)[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
@@ -621,235 +784,56 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;As stated before, Eminem is known for his explicit and crass language, his aggressive and violent themes, and deep exploration into dark and emotionally intense themes. In order to better understand how these topics are represented by the sentiment contained in his works, the ten most frequent negative and positive words will be presented. When processing these words, the use of slang and informal language had to be taken into account. For example, the word <em>killing</em> can be used as violence (“I’m killing you”), as a way to express wealth (“Rob the bank, you’ll make a killing”), and as an expression of pride (“You’re killing it man”). To avoid this distortion, stemming the words was avoided.</p>
-<div id="6f1b7261" class="cell" data-execution_count="12">
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;While distressed language is more prevalent than aggressive language, the difference in frequency is unexpectedly close. A mere 1.2% difference, as shown by Figure 6, indicates much more focus on anger and hostility than expected. Still, the prominence of distressed words presents a strong focus on resilience dealing with feelings of regret, sadness, and exhaustion. The high prevalence of explicit language at 65.7% reflects the intense expression of these emotions, in addition to those carried by the more aggressive words.</p>
+<div id="06ffa70e" class="cell" data-scrolled="false" data-execution_count="12">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># creates a new dictionary replacing the list of lines with a list of individual words from divided_lyrics</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> words_dict(d):</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  new_dict <span class="op">=</span> {}</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> key, value <span class="kw">in</span> d.items():</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> key <span class="op">!=</span> <span class="st">'Eminem Presents the Re-Up'</span>:</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>      new_dict[key] <span class="op">=</span> {}</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="bu">isinstance</span>(value, <span class="bu">dict</span>): <span class="co"># if not a-sentiment</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> k, v <span class="kw">in</span> value.items():</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> <span class="bu">isinstance</span>(v, <span class="bu">dict</span>): <span class="co"># if not s-sentiment</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>            lyrics <span class="op">=</span> <span class="st">" "</span>.join(v[<span class="st">'lyrics'</span>]) <span class="co"># join all lines together separated by white space</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>            <span class="co"># split, strip punctuation, lower-case all words, and remove stop words</span></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>            all_words <span class="op">=</span> lyrics.split()</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>            lower_words <span class="op">=</span> [word.strip(string.punctuation).lower() <span class="cf">for</span> word <span class="kw">in</span> all_words]</span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>            new_dict[key][k] <span class="op">=</span> [w <span class="cf">for</span> w <span class="kw">in</span> lower_words <span class="cf">if</span> w <span class="kw">not</span> <span class="kw">in</span> myStopWords]</span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> new_dict</span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>word_lyrics <span class="op">=</span> words_dict(divided_lyrics)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<div id="f54fe063" class="cell" data-execution_count="13">
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># returns a tuple containing all most common positive and negative words, and their frequencies for each album</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> album_common_sentiment(d):</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  com_pos <span class="op">=</span> []</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  com_neg <span class="op">=</span> []</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> album, songs <span class="kw">in</span> d.items():</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    all_lyrics <span class="op">=</span> []</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> key, lyrics <span class="kw">in</span> songs.items(): <span class="co"># add all words from songs to album lyrics</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>      all_lyrics <span class="op">+=</span> lyrics</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    positive <span class="op">=</span> []</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    negative <span class="op">=</span> []</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># find compound score of each word</span></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> word <span class="kw">in</span> all_lyrics:</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>      word_score <span class="op">=</span> sia.polarity_scores(word)</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> word_score[<span class="st">'compound'</span>] <span class="op">&gt;</span> <span class="dv">0</span>:</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>        positive.append(word)</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">elif</span> word_score[<span class="st">'compound'</span>] <span class="op">&lt;</span> <span class="dv">0</span>:</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>        negative.append(word)</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># list of (word, frequency) for 10 most common neg and pos</span></span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    common_positive <span class="op">=</span> nltk.FreqDist(positive).most_common(<span class="dv">10</span>)</span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    common_negative <span class="op">=</span> nltk.FreqDist(negative).most_common(<span class="dv">10</span>)</span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># add to tuple with album name</span></span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>    com_pos.append((album, common_positive))</span>
-<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>    com_neg.append((album, common_negative))</span>
-<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (com_pos, com_neg)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<div id="c387b921" class="cell" data-scrolled="false" data-execution_count="14">
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># language categories </span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>curse_words <span class="op">=</span> [<span class="st">'fuck'</span>, <span class="st">'ass'</span>, <span class="st">'shit'</span>, <span class="st">'damn'</span>, <span class="st">'bitch'</span>, <span class="st">'goddamn'</span>, <span class="st">'dick'</span>, <span class="st">'motherfucker'</span>, <span class="st">'motherfucking'</span>, <span class="st">'hell'</span>, <span class="st">'niggas'</span>]</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>aggressive_words <span class="op">=</span> [<span class="st">'kill'</span>, <span class="st">'hurt'</span>, <span class="st">'fight'</span>, <span class="st">'cut'</span>, <span class="st">'crazy'</span>, <span class="st">'die'</span>, <span class="st">'hate'</span>]</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>distress_words <span class="op">=</span> [<span class="st">'leave'</span>, <span class="st">'lose'</span>, <span class="st">'stop'</span>, <span class="st">'lost'</span>, <span class="st">'anxious'</span>, <span class="st">'hide'</span>, <span class="st">'regrets'</span>, <span class="st">'tired'</span>, <span class="st">'sorry'</span>, <span class="st">'falling'</span>, <span class="st">'alone'</span>, </span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>                  <span class="st">'pain'</span>, <span class="st">'hard'</span>, <span class="st">'worse'</span>]</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>word_categories <span class="op">=</span> {</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">'curse_words'</span>: curse_words,</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">'aggressive_words'</span>: aggressive_words,</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">'distress_words'</span>: distress_words,</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co"># plots the most common negative words as horizontal bar charts</span></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_negative_sentiment_words(neg_com):</span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  fig, axs <span class="op">=</span> plt.subplots(<span class="dv">6</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">24</span>))</span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>  axs <span class="op">=</span> axs.flatten()</span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>  release_order <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">0</span>, <span class="dv">5</span>, <span class="dv">3</span>, <span class="dv">6</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">4</span>, <span class="dv">9</span>, <span class="dv">7</span>, <span class="dv">11</span>]</span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(neg_com)):</span>
-<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> release_order[j]</span>
-<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>    this_album <span class="op">=</span> neg_com[i]</span>
-<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>    album_title <span class="op">=</span> this_album[<span class="dv">0</span>]</span>
-<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> this_album[<span class="dv">1</span>]</span>
-<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>    word, freq <span class="op">=</span> <span class="bu">zip</span>(<span class="op">*</span>words)</span>
-<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># inverse order so most common at top</span></span>
-<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>    word <span class="op">=</span> word[::<span class="op">-</span><span class="dv">1</span>]</span>
-<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>    freq <span class="op">=</span> freq[::<span class="op">-</span><span class="dv">1</span>]</span>
-<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>    <span class="co"># map color to word category</span></span>
-<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>    color_map <span class="op">=</span> {</span>
-<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>      <span class="st">'curse_words'</span>: <span class="st">'red'</span>, </span>
-<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>      <span class="st">'aggressive_words'</span>: <span class="st">'orange'</span>,</span>
-<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>      <span class="st">'distress_words'</span>: <span class="st">'blue'</span>,</span>
-<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>      <span class="st">'default'</span>: <span class="st">'black'</span>,</span>
-<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>    colors <span class="op">=</span> []</span>
-<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> w <span class="kw">in</span> word:</span>
-<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> w <span class="kw">in</span> word_categories[<span class="st">'distress_words'</span>]:</span>
-<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>            colors.append(color_map[<span class="st">'distress_words'</span>])</span>
-<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> w <span class="kw">in</span> word_categories[<span class="st">'curse_words'</span>]:</span>
-<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>            colors.append(color_map[<span class="st">'curse_words'</span>])</span>
-<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> w <span class="kw">in</span> word_categories[<span class="st">'aggressive_words'</span>]:</span>
-<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>            colors.append(color_map[<span class="st">'aggressive_words'</span>])</span>
-<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a>            colors.append(color_map[<span class="st">'default'</span>])</span>
-<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a>    <span class="co"># plot subgraphs</span></span>
-<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a>    axs[j].barh(word, freq, color<span class="op">=</span>colors)</span>
-<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a>    axs[j].set_title(album_title)</span>
-<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a>    axs[j].set_xlabel(<span class="st">'Frequency'</span>)</span>
-<span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a>    axs[j].set_ylabel(<span class="st">'Word'</span>)</span>
-<span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a>    patches <span class="op">=</span> [</span>
-<span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a>        mpatches.Patch(color<span class="op">=</span>color_map[<span class="st">'curse_words'</span>], label<span class="op">=</span><span class="st">'Explicit Language '</span>),</span>
-<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a>        mpatches.Patch(color<span class="op">=</span>color_map[<span class="st">'aggressive_words'</span>], label<span class="op">=</span><span class="st">'Aggressive Language'</span>),</span>
-<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a>        mpatches.Patch(color<span class="op">=</span>color_map[<span class="st">'distress_words'</span>], label<span class="op">=</span><span class="st">'Distressed Language'</span>),</span>
-<span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a>    ]</span>
-<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a>  plt.legend(handles<span class="op">=</span>patches)</span>
-<span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a>  fig.text(<span class="fl">0.5</span>, <span class="fl">0.01</span>, <span class="st">"Figure 5: 10 Most Common Negative Words"</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
-<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a>  plt.tight_layout(rect<span class="op">=</span>[<span class="dv">0</span>, <span class="fl">0.02</span>, <span class="dv">1</span>, <span class="dv">1</span>])  <span class="co"># adjusts the space for caption without overlap</span></span>
-<span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a>plot_negative_sentiment_words(album_common_sentiment(word_lyrics)[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot 10 most common positive words in horizontal bar chart</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_positive_sentiment_words(neg_com):</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># same as plot_negative_sentiment_words</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  fig, axs <span class="op">=</span> plt.subplots(<span class="dv">6</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">24</span>))</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  axs <span class="op">=</span> axs.flatten()  <span class="co"># Flatten the 2D array to 1D for easier indexing</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  release_order <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">0</span>, <span class="dv">5</span>, <span class="dv">3</span>, <span class="dv">6</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">4</span>, <span class="dv">9</span>, <span class="dv">7</span>, <span class="dv">11</span>]</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(neg_com)):</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> release_order[j]</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    this_album <span class="op">=</span> neg_com[i]</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    album_title <span class="op">=</span> this_album[<span class="dv">0</span>]</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> this_album[<span class="dv">1</span>]</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    word, freq <span class="op">=</span> <span class="bu">zip</span>(<span class="op">*</span>words)</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    word <span class="op">=</span> word[::<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    freq <span class="op">=</span> freq[::<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># map colors to motivational language</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    colors <span class="op">=</span> []</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> w <span class="kw">in</span> word:</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> w <span class="op">==</span> <span class="st">'want'</span>:</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>            colors.append(<span class="st">'green'</span>)</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> w <span class="op">==</span> <span class="st">'better'</span> <span class="kw">or</span> w <span class="op">==</span> <span class="st">'hope'</span> <span class="kw">or</span> w <span class="op">==</span> <span class="st">'dream'</span>:</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>            colors.append(<span class="st">'yellow'</span>)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>            colors.append(<span class="st">'black'</span>)</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># plotting</span></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>    axs[j].barh(word, freq, color<span class="op">=</span>colors)</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>    axs[j].set_title(album_title)</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>    axs[j].set_xlabel(<span class="st">'Frequency'</span>)</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    axs[j].set_ylabel(<span class="st">'Word'</span>)</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>    patches <span class="op">=</span> [</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>        mpatches.Patch(color<span class="op">=</span><span class="st">'yellow'</span>, label<span class="op">=</span><span class="st">'Motivational Language'</span>),</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add the legend to the figure</span></span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>  plt.legend(handles<span class="op">=</span>patches)</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>  fig.text(<span class="fl">0.5</span>, <span class="fl">0.01</span>, <span class="st">"Figure 7: 10 Most Common Positive Words"</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>  plt.tight_layout(rect<span class="op">=</span>[<span class="dv">0</span>, <span class="fl">0.02</span>, <span class="dv">1</span>, <span class="dv">1</span>])  <span class="co"># adjusts the space for caption without overlap</span></span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>plot_positive_sentiment_words(album_common_sentiment(word_lyrics)[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="final_blog_files/figure-html/cell-15-output-1.png" class="img-fluid figure-img"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The overwhelming majority of words containing negative sentiment are curse words. This was expected, since explicit language is commonly being used to intensify sentiment. In the context of Eminem’s discography, this frequent cursing is reflected in the strong intensity of negative sentiment. It is also observed that most albums feature either mostly aggressive or mostly distressed language. The expectation was that the bar chart would reflect the theme of resilience by showing a clear majority of distressed language compared to aggressive language. This is because distressed language often portrays the challenges and internal conflicts faced by an individual. Contrastly, aggressive language typically focuses on confrontation and outwards expressions of hostility, which does not as clearly convey the strive for personal growth.</p>
-<div id="13377a1d" class="cell" data-execution_count="15">
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot distribution of categories in pie chart</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> negative_pie_chart(neg_com):</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># calculate frequency of each category</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  aggression <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  curses <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  distress <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  other <span class="op">=</span> <span class="dv">0</span> </span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(neg_com)):</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    this_album <span class="op">=</span> neg_com[i]</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    album_title <span class="op">=</span> this_album[<span class="dv">0</span>]</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> this_album[<span class="dv">1</span>]</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> w <span class="kw">in</span> words:</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> w[<span class="dv">0</span>] <span class="kw">in</span> word_categories[<span class="st">'distress_words'</span>]:</span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>          distress <span class="op">+=</span> w[<span class="dv">1</span>]</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>      <span class="cf">elif</span> w[<span class="dv">0</span>] <span class="kw">in</span> word_categories[<span class="st">'curse_words'</span>]:</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>          curses <span class="op">+=</span> w[<span class="dv">1</span>]</span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">elif</span> w[<span class="dv">0</span>] <span class="kw">in</span> word_categories[<span class="st">'aggressive_words'</span>]:</span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>          aggression <span class="op">+=</span> w[<span class="dv">1</span>]</span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>      <span class="cf">else</span>:</span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>          other <span class="op">+=</span> w[<span class="dv">1</span>]</span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>          </span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># plotting</span></span>
-<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>  values <span class="op">=</span> [curses, distress, aggression, other]</span>
-<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>  categories <span class="op">=</span> [<span class="st">'Curses'</span>, <span class="st">'Distress'</span>, <span class="st">'Aggression'</span>, <span class="st">'Other'</span>]</span>
-<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>  fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">8</span>))</span>
-<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>  wedges, texts, autotexts <span class="op">=</span> ax.pie(</span>
-<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>        values, </span>
-<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>        labels<span class="op">=</span>categories, </span>
-<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>        autopct<span class="op">=</span><span class="st">'</span><span class="sc">%1.1f%%</span><span class="st">'</span>,  <span class="co"># Show percentages</span></span>
-<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>        colors<span class="op">=</span>[<span class="st">'red'</span>,<span class="st">'blue'</span>,<span class="st">'orange'</span>,<span class="st">'gray'</span>], </span>
-<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>        startangle<span class="op">=</span><span class="dv">140</span>  <span class="co"># change angle to display aggression and distress at top</span></span>
-<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>  ax.legend(wedges, categories, title<span class="op">=</span><span class="st">"Categories"</span>, loc<span class="op">=</span><span class="st">"center left"</span>, bbox_to_anchor<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">1</span>))</span>
-<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 6: Distribution of Negative Sentiment'</span>)</span>
-<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>negative_pie_chart(album_common_sentiment(word_lyrics)[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="final_blog_files/figure-html/cell-16-output-1.png" class="img-fluid figure-img"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;While distressed language is more prevalent than aggressive language, the difference in frequency is unexpectedly close. A mere 1.2% difference, as shown by the pie chart, indicates much more focus on anger and hostility than expected. Still, the prominence of distressed words presents a strong focus on resilience dealing with feelings of regret, sadness, and exhaustion. The high prevalence of explicit language at 65.7% reflects the intense expression of these emotions, in addition to those carried by the more aggressive words.</p>
-<div id="06ffa70e" class="cell" data-scrolled="false" data-execution_count="16">
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot 10 most common positive words in horizontal bar chart</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_positive_sentiment_words(neg_com):</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># same as plot_negative_sentiment_words</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  fig, axs <span class="op">=</span> plt.subplots(<span class="dv">6</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">24</span>))</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  axs <span class="op">=</span> axs.flatten()  <span class="co"># Flatten the 2D array to 1D for easier indexing</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  release_order <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">0</span>, <span class="dv">5</span>, <span class="dv">3</span>, <span class="dv">6</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">4</span>, <span class="dv">9</span>, <span class="dv">7</span>, <span class="dv">11</span>]</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(neg_com)):</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> release_order[j]</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    this_album <span class="op">=</span> neg_com[i]</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    album_title <span class="op">=</span> this_album[<span class="dv">0</span>]</span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> this_album[<span class="dv">1</span>]</span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    word, freq <span class="op">=</span> <span class="bu">zip</span>(<span class="op">*</span>words)</span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    word <span class="op">=</span> word[::<span class="op">-</span><span class="dv">1</span>]</span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    freq <span class="op">=</span> freq[::<span class="op">-</span><span class="dv">1</span>]</span>
-<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># map colors to motivational language</span></span>
-<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    colors <span class="op">=</span> []</span>
-<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> w <span class="kw">in</span> word:</span>
-<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> w <span class="op">==</span> <span class="st">'want'</span>:</span>
-<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>            colors.append(<span class="st">'green'</span>)</span>
-<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> w <span class="op">==</span> <span class="st">'better'</span> <span class="kw">or</span> w <span class="op">==</span> <span class="st">'hope'</span> <span class="kw">or</span> w <span class="op">==</span> <span class="st">'dream'</span>:</span>
-<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>            colors.append(<span class="st">'yellow'</span>)</span>
-<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>            colors.append(<span class="st">'black'</span>)</span>
-<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># plotting</span></span>
-<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>    axs[j].barh(word, freq, color<span class="op">=</span>colors)</span>
-<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>    axs[j].set_title(album_title)</span>
-<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>    axs[j].set_xlabel(<span class="st">'Frequency'</span>)</span>
-<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>    axs[j].set_ylabel(<span class="st">'Word'</span>)</span>
-<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>    patches <span class="op">=</span> [</span>
-<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>        mpatches.Patch(color<span class="op">=</span><span class="st">'yellow'</span>, label<span class="op">=</span><span class="st">'Motivational Language'</span>),</span>
-<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a>    ]</span>
-<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add the legend to the figure</span></span>
-<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a>  plt.legend(handles<span class="op">=</span>patches)</span>
-<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a>  fig.text(<span class="fl">0.5</span>, <span class="fl">0.01</span>, <span class="st">"Figure 7: 10 Most Common Positive Words"</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
-<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a>  plt.tight_layout(rect<span class="op">=</span>[<span class="dv">0</span>, <span class="fl">0.02</span>, <span class="dv">1</span>, <span class="dv">1</span>])  <span class="co"># adjusts the space for caption without overlap</span></span>
-<span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a>plot_positive_sentiment_words(album_common_sentiment(word_lyrics)[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="final_blog_files/figure-html/cell-17-output-1.png" class="img-fluid figure-img"></p>
+<p><img src="final_blog_files/figure-html/cell-13-output-1.png" class="img-fluid figure-img"></p>
 </figure>
 </div>
 </div>
