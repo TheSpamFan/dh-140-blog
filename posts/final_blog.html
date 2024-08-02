@@ -207,15 +207,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="methods" class="level2">
 <h2 class="anchored" data-anchor-id="methods">Methods</h2>
 <p><strong>Focusing the Data</strong><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;To begin analyzing sentiment across Eminem’s discography, the set of data first had to be determined. Three subsets were quickly eliminated:<br>
-1. Compilation albums, such as <em>Curtain Call: The Hits</em>, repeated songs present in previous albums and prioritized hits over a cohesive musical experience.<br>
-2. Deluxe editions of albums included extra tracks which typically did not make the original releases cut and might not reflect the intended thematic progression of the album.<br>
-3. Singles were commonly either pre-releases before being added to the following album or collaborations with other artists whose own sentiment characteristics could distort the collected data.</p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;To begin analyzing sentiment across Eminem’s discography, the set of data first had to be determined. Three subsets were quickly eliminated:</p>
+<ol type="1">
+<li><p>Compilation albums, such as <em>Curtain Call: The Hits</em>, repeated songs present in previous albums and prioritized hits over a cohesive musical experience.</p></li>
+<li><p>Deluxe editions of albums included extra tracks which typically did not make the original releases cut and might not reflect the intended thematic progression of the album.</p></li>
+<li><p>Singles were commonly either pre-releases before being added to the following album or collaborations with other artists whose own sentiment characteristics could distort the collected data.</p></li>
+</ol>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This resulted in an original collection size of 13 albums to analyze. Upon further investigation, <em>Eminem: The Re-Up</em> was found to also be a compilation album, bringing the collection size down to 12 albums.</p>
 <p><strong>Collecting the Data</strong><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;It quickly became apparent that Eminem’s lyrics would need to be webscraped, as the many databases online created to store and present musical artist’s lyrics only contained Eminem’s first couple releases. Genius.com was selected, due to my personal favorable experience with the website and the vast lyrical library it contains. A custom web scraper was coded in Python, using the Python libraries <em>request</em> and <em>BeautifulSoup</em>. After scraping the lyrics for every song, the data was organized into a nested dictionary, with the hierarchy of album_name –&gt; song_name –&gt; lyrics.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A major challenge was getting past Genius.com’s bot detection and coverage by Cloudflare. Midway through testing the scraper in the project’s Jupyter server, my requests stopped working, encountering a 403 output. To get around this, I found I needed to run my code in my local environment. I utilized Python’s proxy library and rotated proxies using my PC’s terminal. The data was then exported to the Git repository by saving the dictionary into the .txt file “lyrics_lines.txt” using Python’s <em>json</em> library.</p>
 <div id="98585bf0" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># misc</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> bs4 <span class="im">import</span> BeautifulSoup</span>
@@ -238,6 +242,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> string <span class="im">import</span> punctuation</span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> nltk.corpus <span class="im">import</span> stopwords</span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>myStopWords <span class="op">=</span> <span class="bu">list</span>(punctuation) <span class="op">+</span> stopwords.words(<span class="st">'english'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stderr">
 <pre><code>[nltk_data] Downloading package vader_lexicon to
 [nltk_data]     /home/jovyan/nltk_data...
@@ -247,6 +252,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div id="c2c1a159" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">NOTE</span><span class="co">: I was only able to run this on my local environment. As I continued testing, I needed to begin rotating my proxies</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># to avoid my IP being pinged</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -294,10 +301,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a><span class="co"># named lyrics_lines_dud so that it does not overwrite lyrics_lines imported from my local system.</span></span>
 <span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">'lyrics_lines_dud.txt'</span>, <span class="st">'w'</span>) <span class="im">as</span> lyrics_file:  <span class="co"># export dictionary to .txt file</span></span>
 <span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>     lyrics_file.write(json.dumps(eminem_lyrics))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <p><strong>Cleaning the Data</strong><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Using <em>json</em>, the data was imported as a dictionary into the repository notebook. Before sentiment analysis could begin, the raw textual data required additional cleaning. Many of the scraped song names and lyrics contained non-ASCII characters. In addition, certain character sequences characteristic of html coding, such as “\‘” and ’xa0’, needed to be replaced with their ASCII counterparts. While VADER, the sentiment analyzer chosen for this project, is capable of handling non-ASCII characters, its performance might not be optimal when handling them. In addition, structural indicators such as [Verse 1] and [Chorus], as well as noise descriptions such as *camera flashes*, needed to be removed in order to focus solely on lyrical content. Finally, excess white space and consecutive newlines were handled. The cleaning of the data was accomplished using 2 Python functions, one to use on the track titles and the other to clean the lyrical texts.</p>
 <div id="afdf2b36" class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># import data from txt file</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">'lyrics_lines.txt'</span>) <span class="im">as</span> f:</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  data <span class="op">=</span> f.read()</span>
@@ -343,11 +353,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> a, b <span class="kw">in</span> v.items():</span>
 <span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>      new_lyrics <span class="op">=</span> clean_string(b) <span class="co"># clean lyrics</span></span>
 <span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>      cleaned_lyrics[key][new_k][a] <span class="op">=</span> new_lyrics</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <p><strong>Preparing The Data For Sentiment Analysis</strong><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The sentiment analyzer used in this project is VADER (Valence Aware Dictionary and sEntiment Reasoner). Designed to handle social media texts, VADER is well-suited to analyze informal, conversational language which is similar to the language found in rap lyrics. Common among both is slang, abbreviations, casual expressions, and references to well-known figures. VADER also considers the context of the entire sentence or phrase. This is especially important for Eminem’s lyrics, as context plays a key role in interpreting sentiment, especially where sentiment can shift as often as every line. VADER is also skilled in identifying negations and intensifiers of words (“very good” v.s. “not good” v.s. “good”), which is important as phrases in rap lyrics are often layered and complex.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VADER does struggle with a few areas, which influenced how the lyrical texts were prepared. VADER is generally designed for short texts, analyzing sentiment on a sentence-by-sentence or phrase-by-phrase basis. In larger pieces of texts, the sentiment analyzer relies on punctuation to both divide the text into manageable chunks and help determine sentiment intensity. There are no sentence ending punctuation in the lyrical text, however, meaning clear phrase boundaries must be artificially introduced by breaking up the text before feeding it to the analyzer. Fortunately, Genius.com’s lyrics already contain newlines which break songs up into bars. Using this separator, each text is broken up by phrase and stored as a list of strings, ready to be analyzed.</p>
 <div id="bf510776" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># new dictionary separates the lyrics by line</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>divided_lyrics <span class="op">=</span> {}</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> key, value <span class="kw">in</span> cleaned_lyrics.items():</span>
@@ -359,10 +372,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> a, b <span class="kw">in</span> v.items():</span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>      split_lyrics <span class="op">=</span> [line <span class="cf">for</span> line <span class="kw">in</span> b.split(<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>) <span class="cf">if</span> line] <span class="co"># creates list of strings with '\n' as delimiter</span></span>
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>      divided_lyrics[key][k][a] <span class="op">=</span> split_lyrics</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <p><strong>Calculating Sentiment</strong><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sentiment is calculated using a nested for loop. The sentiment analyzer is run on every phrase in a song, and then each compound score (the sentiment accounting for both positive and negative scores) is added together to form the song’s sentiment score. The album’s total sentiment score is then the sum of its track’s sentiment scores.</p>
 <div id="43509f3e" class="cell" data-execution_count="5">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># calculating total sentiment scores of songs and albums</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>sia <span class="op">=</span> vader.SentimentIntensityAnalyzer()     <span class="co"># initialize sentiment analyzer</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> album, tracks <span class="kw">in</span> divided_lyrics.items(): <span class="co"># key is album name, value dictionary including songs and sent score</span></span>
@@ -377,9 +393,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>      divided_lyrics[album][song][<span class="st">'s-sentiment'</span>] <span class="op">=</span> song_sentiment</span>
 <span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>      album_sentiment <span class="op">+=</span> song_sentiment <span class="co"># update album_sentiment</span></span>
 <span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  divided_lyrics[album][<span class="st">'a-sentiment'</span>] <span class="op">=</span> album_sentiment</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;However, this method fails to account for the varying album sizes and the different song lengths. A 4-minute song will naturally have a higher score than a 30-second intro song, just as an album with 18 tracks will be more likely to have a greater score than a 12-track album. Averaging each song’s sentiment by dividing the sum phrase sentiment by the number of phrases in each song will provide a more normalized view and mitigate any distortions due to varying line counts. Repeating this approach when calculating album sentiment scores will ensure that the differing album lengths also does not cause any distortions.</p>
 <div id="84515a4f" class="cell" data-execution_count="6">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># calculating average sentiment scores for songs and albums.</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>sia <span class="op">=</span> vader.SentimentIntensityAnalyzer()</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> album, tracks <span class="kw">in</span> divided_lyrics.items():</span>
@@ -400,12 +419,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>      divided_lyrics[album][song][<span class="st">'s-sentiment'</span>] <span class="op">=</span> average_sent_score</span>
 <span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>      album_sentiment <span class="op">+=</span> average_sent_score</span>
 <span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  divided_lyrics[album][<span class="st">'a-sentiment'</span>] <span class="op">=</span> album_sentiment <span class="op">/</span> album_size <span class="co"># take the average</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 </section>
 <section id="results" class="level2">
 <h2 class="anchored" data-anchor-id="results">Results</h2>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;To visualize the sentiment scores of tracks across each album, inspiration was taken from the Romeo and Juliet assignment to use a colored bar graph to present how the sentiment evolves over time. Each bar chart displays the sentiment scores of the songs from the first track to the last. Any song with an average positive sentiment is colored yellow, while tracks with average negative sentiment are colored purple.</p>
 <div id="c276d45e" class="cell" data-scrolled="false" data-execution_count="7">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># transforms dictionary into a list of tuples </span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># structured [(album, [(song, score)])]</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># input divided_lyrics</span></span>
@@ -451,6 +473,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a><span class="co"># plot</span></span>
 <span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>sentiment_charter(data_set)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -462,6 +485,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Analyzing the Data</strong><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;As seen in Figure 1, the sentiment scores across each album is displayed from oldest to newest release. Observably, no album contains more positive sentiment scores than negative scores, signifying that Eminem’s discography favors negative emotional intensity. It is not a close contest either: his songs appear to convey overwhelming negative emotions.</p>
 <div id="45ee42ff" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pie chart</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>very_neg <span class="op">=</span> <span class="dv">0</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>very_pos <span class="op">=</span> <span class="dv">0</span></span>
@@ -493,6 +518,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Figure 2: Sentiment Score Distribution'</span>)</span>
 <span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -503,6 +529,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This trend towards more negative emotion is represented in the pie chart above. 75.2% of Eminem’s songs have negative sentiments, with 40% of them carrying a strong negative sentiment score of -0.1 or below. By contrast, only 24.8% of Eminem’s songs are positive and only 18.1% of these convey a positive sentiment stronger than 0.1. Not only is the frequency of songs with negative sentiment greater than those with positive sentiments, but negative scores are more likely to be strong than positive scores. Additionally, by observing the peaks of the bar charts above, the strongest negative sentiment appears to almost always surpass the strongest positive sentiment.</p>
 <div id="8904cb38" class="cell" data-execution_count="9">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>album_names <span class="op">=</span> []</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>pos_scores <span class="op">=</span> []</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>neg_scores <span class="op">=</span> []</span>
@@ -531,6 +559,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels(album_names, rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)          </span>
 <span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>ax.legend()</span>
 <span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -542,6 +571,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The above bar chart supports this observation, revealing only two albums - <em>Recovery</em> and <em>Music to Be Murdered By: Side B</em> - where the strongest positive score is greater than the strongest negative score. There is also a noticeable gap of at least 0.05 points between the positive and negative scores in his albums, with nearly half of these gaps being greater than 0.1.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The dominance of negative sentiment across Eminem’s work supports the broader trend in his music towards exploring topics of adversity and struggle. Furthermore, this degree of negative sentiment suggests that these difficult subjects are discussed in a complex manner, rather than glossing over their more painful aspects. The high degree of intensity indicates strong emotions as well. The most frequent words with negative sentiment, therefore, are expected to be explicit and aggressive language, rather than the more mellow tone which distressed language conveys.</p>
 <div id="cb3898a6" class="cell" data-execution_count="10">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plotting average sentiment for each album in order</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># input divided_lyrics</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># output plots a-sentiment as bar chart</span></span>
@@ -567,6 +598,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>  plt.ylabel(<span class="st">'Sentiment'</span>)</span>
 <span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>  plt.xticks(rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)</span>
 <span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>plot_album_sentiment(divided_lyrics)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -578,6 +610,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The dominance of negative sentiment across his works is also represented in the sentiment scores of his albums. No album, as presented above, has an overall positive sentiment. The albums with the strongest negative sentiment are his first three albums, while both <em>The Marshall Mathers LP 2</em> and <em>The Death of Slim Shady (Coup De Grace)</em> are outliers for their strong negative sentiments in his later works.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Central to Eminem’s identity is his two personas. Eminem is his name as the rapper. He has an alter-ego called Slim Shady, who is behind some of Eminem’s most explicit and graphic songs. Slim Shady embodies the rage and pain behind Eminem’s experiences. This persona was most prominent in his first three albums, which is reflected by the fact that these three hold the strongest negative sentiment. Eminem’s more mature and vulnerable persona is Marshall Mathers, which is his birth name. Eminem’s more introspective lyrics are most often the work of this persona. Interestingly, the five albums with the strongest negative sentiment, as well as being the only albums with sentiments below -0.05, are also the five albums which contain one of his three personas (‘Slim Shady’, ‘Marshall Mathers’, ‘Eminem’) in the album title. This correlation suggests a close relationship between Eminem’s personal struggles and intense negative sentiment. This relationship can be seen below.</p>
 <div id="8cee8e57" class="cell" data-execution_count="11">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># same as plot_album_sentiment, but adds color and a legend</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_album_sentiment_colored(d):</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  album_sent <span class="op">=</span> []</span>
@@ -608,6 +642,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>  plt.ylabel(<span class="st">'Sentiment'</span>)</span>
 <span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>  plt.xticks(rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)</span>
 <span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>plot_album_sentiment_colored(divided_lyrics)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -618,6 +653,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;As stated before, Eminem is known for his explicit and crass language, his aggressive and violent themes, and deep exploration into dark and emotionally intense themes. In order to better understand how these topics are represented by the sentiment contained in his works, the ten most frequent negative and positive words will be presented. When processing these words, the use of slang and informal language had to be taken into account. For example, the word <em>killing</em> can be used as violence (“I’m killing you”), as a way to express wealth (“Rob the bank, you’ll make a killing”), and as an expression of pride (“You’re killing it man”). To avoid this distortion, stemming the words was avoided.</p>
 <div id="6f1b7261" class="cell" data-execution_count="12">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># creates a new dictionary replacing the list of lines with a list of individual words from divided_lyrics</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> words_dict(d):</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  new_dict <span class="op">=</span> {}</span>
@@ -637,8 +674,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> new_dict</span>
 <span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>word_lyrics <span class="op">=</span> words_dict(divided_lyrics)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <div id="f54fe063" class="cell" data-execution_count="13">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># returns a tuple containing all most common positive and negative words, and their frequencies for each album</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> album_common_sentiment(d):</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  com_pos <span class="op">=</span> []</span>
@@ -665,8 +705,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>    com_pos.append((album, common_positive))</span>
 <span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>    com_neg.append((album, common_negative))</span>
 <span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (com_pos, com_neg)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <div id="c387b921" class="cell" data-scrolled="false" data-execution_count="14">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># language categories </span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>curse_words <span class="op">=</span> [<span class="st">'fuck'</span>, <span class="st">'ass'</span>, <span class="st">'shit'</span>, <span class="st">'damn'</span>, <span class="st">'bitch'</span>, <span class="st">'goddamn'</span>, <span class="st">'dick'</span>, <span class="st">'motherfucker'</span>, <span class="st">'motherfucking'</span>, <span class="st">'hell'</span>, <span class="st">'niggas'</span>]</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>aggressive_words <span class="op">=</span> [<span class="st">'kill'</span>, <span class="st">'hurt'</span>, <span class="st">'fight'</span>, <span class="st">'cut'</span>, <span class="st">'crazy'</span>, <span class="st">'die'</span>, <span class="st">'hate'</span>]</span>
@@ -729,6 +772,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a>  plt.tight_layout(rect<span class="op">=</span>[<span class="dv">0</span>, <span class="fl">0.02</span>, <span class="dv">1</span>, <span class="dv">1</span>])  <span class="co"># adjusts the space for caption without overlap</span></span>
 <span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a>plot_negative_sentiment_words(album_common_sentiment(word_lyrics)[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -739,6 +783,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The overwhelming majority of words containing negative sentiment are curse words. This was expected, since explicit language is commonly being used to intensify sentiment. In the context of Eminem’s discography, this frequent cursing is reflected in the strong intensity of negative sentiment. It is also observed that most albums feature either mostly aggressive or mostly distressed language. The expectation was that the bar chart would reflect the theme of resilience by showing a clear majority of distressed language compared to aggressive language. This is because distressed language often portrays the challenges and internal conflicts faced by an individual. Contrastly, aggressive language typically focuses on confrontation and outwards expressions of hostility, which does not as clearly convey the strive for personal growth.</p>
 <div id="13377a1d" class="cell" data-execution_count="15">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot distribution of categories in pie chart</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> negative_pie_chart(neg_com):</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># calculate frequency of each category</span></span>
@@ -775,6 +821,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>  plt.title(<span class="st">'Figure 7: Distribution of Negative Sentiment'</span>)</span>
 <span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>negative_pie_chart(album_common_sentiment(word_lyrics)[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -785,6 +832,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;While distressed language is more prevalent than aggressive language, the difference in frequency is unexpectedly close. A mere 1.2% difference, as shown by the pie chart, indicates much more focus on anger and hostility than expected. Still, the prominence of distressed words presents a strong focus on resilience dealing with feelings of regret, sadness, and exhaustion. The high prevalence of explicit language at 65.7% reflects the intense expression of these emotions, in addition to those carried by the more aggressive words.</p>
 <div id="06ffa70e" class="cell" data-scrolled="false" data-execution_count="16">
+<details class="code-fold">
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot 10 most common positive words in horizontal bar chart</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_positive_sentiment_words(neg_com):</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># same as plot_negative_sentiment_words</span></span>
@@ -826,6 +875,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a>  fig.text(<span class="fl">0.5</span>, <span class="fl">0.01</span>, <span class="st">"Figure 8: 10 Most Common Positive Words"</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
 <span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a>  plt.tight_layout(rect<span class="op">=</span>[<span class="dv">0</span>, <span class="fl">0.02</span>, <span class="dv">1</span>, <span class="dv">1</span>])  <span class="co"># adjusts the space for caption without overlap</span></span>
 <span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a>plot_positive_sentiment_words(album_common_sentiment(word_lyrics)[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
